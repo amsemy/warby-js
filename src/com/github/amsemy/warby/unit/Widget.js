@@ -1,0 +1,51 @@
+(function(ns) {
+
+    'use strict';
+
+    var unit = ns.unit('com.github.amsemy.warby.unit.Widget', implementation);
+
+    unit.require('lib.*');
+
+    function implementation(units) {
+        var $ = units.lib.$;
+
+        /**
+         * Параметры виджета.
+         *
+         * @namespace  Widget~Settings
+         * @property  {String} name
+         *            Имя виджета (id тега виджета).
+         * @property  {String} constructor
+         *            Функция-конструктор виджета.
+         */
+
+        /**
+         * Создаёт виджет.
+         *
+         * @constructor
+         * @param  {Widget~Settings} settings
+         *         Параметры виджета.
+         */
+        var Widget = function(settings) {
+            settings = (settings == null ? {} : settings);
+            if (settings.name == null || settings.name === "") {
+                throw new Error("Undefined 'settings.name' param");
+            }
+            this._name = settings.name;
+        };
+
+        /**
+         * Возвращает элемент, который содержит тело виджета.
+         *
+         * @returns  {jQuery}
+         *           Объект jQuery.
+         */
+        Widget.prototype.getWidgetObj = function() {
+            return $("#" + this._name);
+        };
+
+        return Widget;
+
+    }
+
+})(gumup);

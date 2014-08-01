@@ -1,0 +1,26 @@
+{
+    "name": "warby-js",
+    "description": "Warby JS",
+    "version": "0.1.0",
+    "authors": [
+        "Amsemy <amsemy@gmail.com>"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/amsemy/warby",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/amsemy/warby.git"
+    },
+    "main": "TODO",
+    "ignore": [
+        "/*",
+        "!TODO"
+    ],
+    "devDependencies": {
+        "gumup": "0.2.1",
+        "jquery": "1.11.1",
+        "underscore": "1.6.0",
+        "backbone": "1.1.2",
+        "sinon-1.10.3": "http://sinonjs.org/releases/sinon-1.10.3.js"
+    }
+}
