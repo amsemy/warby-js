@@ -81,11 +81,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-gumup');
 
-    grunt.registerTask('prepare', ['bower:install']);
     grunt.registerTask('make', ['gumup', 'concat', 'uglify']);
     grunt.registerTask('test', ['make', 'jasmine']);
     grunt.registerTask('spec', ['jasmine:all:build']);
 
-    grunt.registerTask('default', ['test']);
+    grunt.registerTask('default', ['bower:install', 'test']);
 
 };
