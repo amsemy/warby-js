@@ -19,7 +19,7 @@ module.exports = function(grunt) {
                     unitPath: ['src']
                 },
                 files: {
-                    'warby.js': [
+                    'dist/warby.js': [
                         'src/com/github/amsemy/warby/unit/View.js',
                         'src/com/github/amsemy/warby/Service.js',
                         'src/com/github/amsemy/warby/Form.js'
@@ -35,7 +35,7 @@ module.exports = function(grunt) {
         uglify: {
             all: {
                 files: {
-                    'warby.min.js': 'warby.js'
+                    'dist/warby.min.js': 'dist/warby.js'
                 }
             },
             options: {
