@@ -31,7 +31,7 @@
             if (settings.name == null || settings.name === "") {
                 throw new Error("Undefined 'settings.name' param");
             }
-            this._name = settings.name;
+            this.name = settings.name;
         };
 
         /**
@@ -41,7 +41,7 @@
          *           Объект jQuery.
          */
         Widget.prototype.getWidgetObj = function() {
-            return $("#" + this._name);
+            return $("#" + this.name);
         };
 
         return Widget;
@@ -364,6 +364,16 @@
                 }
             },
 
+            // Связывает модель/коллекцию с сервисом.
+            bind: function(model) {
+                if (model) {
+                    model.service = this;
+                    model.sync = function() {
+                        return Service.sync.apply(this, arguments);
+                    };
+                }
+            },
+
             // Вызывает функцию сервиса.
             call: function(name) {
                 var apiFunc = getApiFunc(this, name);
@@ -374,16 +384,6 @@
                     } else {
                         return apiFunc.func.call(this);
                     }
-                }
-            },
-
-            // Связывает модель/коллекцию с сервисом.
-            persist: function(model) {
-                if (model) {
-                    model.service = this;
-                    model.sync = function() {
-                        return Service.sync.apply(this, arguments);
-                    };
                 }
             }
 

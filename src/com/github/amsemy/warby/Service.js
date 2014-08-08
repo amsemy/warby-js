@@ -36,6 +36,16 @@
                 }
             },
 
+            // Связывает модель/коллекцию с сервисом.
+            bind: function(model) {
+                if (model) {
+                    model.service = this;
+                    model.sync = function() {
+                        return Service.sync.apply(this, arguments);
+                    };
+                }
+            },
+
             // Вызывает функцию сервиса.
             call: function(name) {
                 var apiFunc = getApiFunc(this, name);
@@ -46,16 +56,6 @@
                     } else {
                         return apiFunc.func.call(this);
                     }
-                }
-            },
-
-            // Связывает модель/коллекцию с сервисом.
-            persist: function(model) {
-                if (model) {
-                    model.service = this;
-                    model.sync = function() {
-                        return Service.sync.apply(this, arguments);
-                    };
                 }
             }
 

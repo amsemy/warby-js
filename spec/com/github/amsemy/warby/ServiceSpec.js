@@ -48,6 +48,30 @@
 
             });
 
+            describe("bind", function() {
+
+                var testService, fooSpy, syncStub;
+
+                beforeEach(function() {
+                    fooSpy = sinon.spy();
+                    syncStub = sinon.stub(Service, "sync");
+                    testService = new Service();
+                });
+
+                afterEach(function() {
+                    syncStub.restore();
+                });
+
+                it("должна связывать синхронизацию модели/коллекции с сервисом", function() {
+                    var model = new Backbone.Model();
+                    testService.bind(model);
+                    model.sync();
+                    expect(model.service).toBe(testService);
+                    expect(syncStub.called).toBeTruthy();
+                });
+
+            });
+
             describe("call", function() {
 
                 var testService, fooSpy;
@@ -77,30 +101,6 @@
                 it("должна возвращать результат функции сервиса", function() {
                     expect(testService.call("bar"))
                         .toBe(testService.api.bar.func());
-                });
-
-            });
-
-            describe("persist", function() {
-
-                var testService, fooSpy, syncStub;
-
-                beforeEach(function() {
-                    fooSpy = sinon.spy();
-                    syncStub = sinon.stub(Service, "sync");
-                    testService = new Service();
-                });
-
-                afterEach(function() {
-                    syncStub.restore();
-                });
-
-                it("должна связывать синхронизацию модели/коллекции с сервисом", function() {
-                    var model = new Backbone.Model();
-                    testService.persist(model);
-                    model.sync();
-                    expect(model.service).toBe(testService);
-                    expect(syncStub.called).toBeTruthy();
                 });
 
             });
@@ -180,9 +180,9 @@
 
                 it("должна делать запрос с настройками, зависищими от метода синхронизации Backbone-модели", function() {
                     var model = new TestModel();
-                    testService.persist(model);
+                    testService.bind(model);
                     var collection = new TestCollection();
-                    testService.persist(collection);
+                    testService.bind(collection);
 
                     //--------------------------------------------------------
 
@@ -224,7 +224,7 @@
                             "Baz2"
                         ]
                     });
-                    testService.persist(model);
+                    testService.bind(model);
 
                     //--------------------------------------------------------
 
@@ -246,7 +246,7 @@
                     var model = new TestModel({
                         id: 1
                     });
-                    testService.persist(model);
+                    testService.bind(model);
 
                     //--------------------------------------------------------
 
@@ -280,9 +280,9 @@
 
                 it("настройки синхронизационного запроса можно переопределить через `options.func`, указав имя нужной функции сервиса", function() {
                     var model = new TestModel();
-                    testService.persist(model);
+                    testService.bind(model);
                     var collection = new TestCollection();
-                    testService.persist(collection);
+                    testService.bind(collection);
 
                     //--------------------------------------------------------
 
@@ -328,13 +328,13 @@
                         b: "abc",
                         c: {d: "D1"}
                     });
-                    testService.persist(model1);
+                    testService.bind(model1);
                     var model2 = new TestModel({
                         a: 456
                     });
-                    testService.persist(model2);
+                    testService.bind(model2);
                     var collection = new TestCollection();
-                    testService.persist(collection);
+                    testService.bind(collection);
 
                     //--------------------------------------------------------
 
@@ -460,13 +460,13 @@
                         b: "abc",
                         c: {d: "D1"}
                     });
-                    testService.persist(model1);
+                    testService.bind(model1);
                     var model2 = new TestModel({
                         a: 456
                     });
-                    testService.persist(model2);
+                    testService.bind(model2);
                     var collection = new TestCollection();
-                    testService.persist(collection);
+                    testService.bind(collection);
 
                     //--------------------------------------------------------
 
@@ -596,13 +596,13 @@
                         c: {d: "D1"},
                         e: {f: "F1"}
                     });
-                    testService.persist(model1);
+                    testService.bind(model1);
                     var model2 = new TestModel({
                         a: 456
                     });
-                    testService.persist(model2);
+                    testService.bind(model2);
                     var collection = new TestCollection();
-                    testService.persist(collection);
+                    testService.bind(collection);
 
                     //--------------------------------------------------------
 
@@ -718,7 +718,7 @@
 
                 it("должна корректно обрабатывать неудачный ответ сервера", function() {
                     var model = new TestModel();
-                    testService.persist(model);
+                    testService.bind(model);
 
                     //--------------------------------------------------------
 
