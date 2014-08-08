@@ -31,7 +31,7 @@
             if (settings.name == null || settings.name === "") {
                 throw new Error("Undefined 'settings.name' param");
             }
-            this._name = settings.name;
+            this.name = settings.name;
         };
 
         /**
@@ -41,7 +41,7 @@
          *           Объект jQuery.
          */
         Widget.prototype.getWidgetObj = function() {
-            return $("#" + this._name);
+            return $("#" + this.name);
         };
 
         return Widget;
