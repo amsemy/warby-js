@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var unit = ns.unit('com.github.amsemy.warby.unit.Widget', implementation);
+    var unit = ns.unit('com.github.amsemy.warby.Widget', implementation);
 
     unit.require('lib.*');
 

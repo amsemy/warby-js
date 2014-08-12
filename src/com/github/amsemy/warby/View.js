@@ -2,12 +2,12 @@
 
     'use strict';
 
-    var unit = ns.unit('com.github.amsemy.warby.unit.View', implementation);
+    var unit = ns.unit('com.github.amsemy.warby.View', implementation);
 
-    unit.require('com.github.amsemy.warby.unit.Widget');
+    unit.require('com.github.amsemy.warby.Widget');
 
     function implementation(units) {
-        var Widget = units.com.github.amsemy.warby.unit.Widget;
+        var Widget = units.com.github.amsemy.warby.Widget;
 
         /**
          * Параметры представления.
