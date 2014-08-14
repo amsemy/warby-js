@@ -314,10 +314,52 @@
                     checkSpies();
                 });
 
+                it("должна формировать правильный адрес запроса", function() {
+                    testService.api.baz = {
+                        type: "GET",
+                        path: ""
+                    };
+                    testService.api.qux = {
+                        type: "GET",
+                        path: "/"
+                    };
+                    var model = new TestModel();
+                    testService.bind(model);
+
+                    //--------------------------------------------------------
+
+                    model.fetch({
+                            func: "baz",
+                            success: successSpy,
+                            error: errorSpy
+                        })
+                        .done(doneSpy)
+                        .fail(failSpy);
+
+                    checkRequest("GET", url("/test-service"),
+                            getModelResp());
+                    checkSpies();
+                    resetSpies();
+
+                    //--------------------------------------------------------
+
+                    model.fetch({
+                            func: "qux",
+                            success: successSpy,
+                            error: errorSpy
+                        })
+                        .done(doneSpy)
+                        .fail(failSpy);
+
+                    checkRequest("GET", url("/test-service/"),
+                            getModelResp());
+                    checkSpies();
+                });
+
                 it("должна подставлять аттрибуты в шаблон адреса запроса", function() {
                     testService.api.baz = {
                         type: "GET",
-                        path: "baz/{a}/{b}"
+                        path: "{a}/baz/{b}"
                     };
                     testService.api.qux = {
                         type: "GET",
@@ -346,7 +388,7 @@
                         .done(doneSpy)
                         .fail(failSpy);
 
-                    checkRequest("GET", url("/test-service/baz/123/abc"),
+                    checkRequest("GET", url("/test-service/123/baz/abc"),
                             getModelResp());
                     checkSpies();
                     resetSpies();
@@ -380,7 +422,7 @@
                         .done(doneSpy)
                         .fail(failSpy);
 
-                    checkRequest("GET", url("/test-service/baz/456/def"),
+                    checkRequest("GET", url("/test-service/456/baz/def"),
                             getModelResp());
                     checkSpies();
                     resetSpies();
@@ -419,7 +461,7 @@
                         .done(doneSpy)
                         .fail(failSpy);
 
-                    checkRequest("GET", url("/test-service/baz/789/ghi"),
+                    checkRequest("GET", url("/test-service/789/baz/ghi"),
                             getCollectionResp());
                     checkSpies();
                     resetSpies();
@@ -713,6 +755,32 @@
 
                     checkRequest("GET", url("/test-service/qux?c.d=D3&e-f=F3"),
                             getCollectionResp());
+                    checkSpies();
+                });
+
+                it("должна кодировать аттрибуты модели", function() {
+                    testService.api.baz = {
+                        type: "GET",
+                        path: "baz/{a}/{b}"
+                    };
+                    var model = new TestModel({
+                        a: "/",
+                        b: "&"
+                    });
+                    testService.bind(model);
+
+                    //--------------------------------------------------------
+
+                    model.fetch({
+                        func: "baz",
+                        success: successSpy,
+                        error: errorSpy
+                    })
+                        .done(doneSpy)
+                        .fail(failSpy);
+
+                    checkRequest("GET", url("/test-service/baz/%2F/%26"),
+                        getModelResp());
                     checkSpies();
                 });
 

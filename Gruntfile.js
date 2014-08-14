@@ -5,7 +5,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         bower: {
-            install: {
+            all: {
                 options: {
                     cleanBowerDir: true
                 }
@@ -85,6 +85,6 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['make', 'jasmine']);
     grunt.registerTask('spec', ['jasmine:all:build']);
 
-    grunt.registerTask('default', ['bower:install', 'test']);
+    grunt.registerTask('default', ['bower', 'test']);
 
 };

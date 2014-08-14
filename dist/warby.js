@@ -2,102 +2,6 @@
 
     'use strict';
 
-    var unit = ns.unit('com.github.amsemy.warby.unit.Widget', implementation);
-
-    unit.require('lib.*');
-
-    function implementation(units) {
-        var $ = units.lib.$;
-
-        /**
-         * Параметры виджета.
-         *
-         * @namespace  Widget~Settings
-         * @property  {String} name
-         *            Имя виджета (id тега виджета).
-         * @property  {String} constructor
-         *            Функция-конструктор виджета.
-         */
-
-        /**
-         * Создаёт виджет.
-         *
-         * @constructor
-         * @param  {Widget~Settings} settings
-         *         Параметры виджета.
-         */
-        var Widget = function(settings) {
-            settings = (settings == null ? {} : settings);
-            if (settings.name == null || settings.name === "") {
-                throw new Error("Undefined 'settings.name' param");
-            }
-            this.name = settings.name;
-        };
-
-        /**
-         * Возвращает элемент, который содержит тело виджета.
-         *
-         * @returns  {jQuery}
-         *           Объект jQuery.
-         */
-        Widget.prototype.getWidgetObj = function() {
-            return $("#" + this.name);
-        };
-
-        return Widget;
-
-    }
-
-})(gumup);
-
-(function(ns) {
-
-    'use strict';
-
-    var unit = ns.unit('com.github.amsemy.warby.unit.View', implementation);
-
-    unit.require('com.github.amsemy.warby.unit.Widget');
-
-    function implementation(units) {
-        var Widget = units.com.github.amsemy.warby.unit.Widget;
-
-        /**
-         * Параметры представления.
-         *
-         * @namespace  View~Settings
-         * @augments  Widget~Settings
-         * @property  {String} [name="config-widget"]
-         *            Имя виджета (id тега виджета).
-         */
-
-        /**
-         * Создаёт представление.
-         *
-         * @constructor
-         * @augments  Widget
-         * @param  {View~Settings} settings
-         *         Параметры представления.
-         */
-        var View = function(settings) {
-            settings = (settings == null ? {} : settings);
-            settings.name = (settings.name == null
-                ? "content-widget" : settings.name);
-            Widget.call(this, settings);
-        };
-
-        View.prototype = Object.create(Widget.prototype);
-        View.prototype.constructor = View;
-
-        return View;
-
-    }
-
-})(gumup);
-
-(function(ns) {
-
-    'use strict';
-
     ns.unit('com.github.amsemy.warby.response.FailureResponse', function() {
 
         return function() {};
@@ -525,34 +429,30 @@
             return result;
         }
 
-        function getParamsObj2(attrs, params) {
-            if (_.isArray(params)) {
-                return _.pick(attrs, params);
-            } else {
-                var paramAttrs = _.pick(attrs, _.keys(params));
-                var result = {};
-                for (var key in params) {
-                    result[params[key]] = paramAttrs[key];
-                }
-                return result;
-            }
-        }
-
         function getSyncUrl(service, attrs, apiFunc) {
-            var syncUrl = service.url;
-            var path = apiFunc.path.split("/");
-            var len = path.length;
-            if (len) {
-                syncUrl += "/" + path[0];
-                for (var i = 1; i < len; i++) {
-                    var p = path[i];
-                    var q = p.substring(1, p.length - 1);
-                    syncUrl += "/"
-                        + (p.charAt(0) === "{" && p.charAt(p.length - 1) === "}"
-                                ? getObjectValue(attrs, q) : p);
+            var syncUrl = service.url,
+                path = apiFunc.path;
+            if (path.length > 0) {
+                if (syncUrl.charAt(syncUrl.length - 1) === "/") {
+                    syncUrl = syncUrl.substring(0, syncUrl.length - 1);
                 }
-            } else {
-                throw new Error("Invalid API function URL");
+                var paths = path.split("/");
+                for (var i = 0, il = paths.length; i < il; i++) {
+                    var p = paths[i];
+                    if (p.charAt(0) === "{"
+                            && p.charAt(p.length - 1) === "}") {
+                        var q = getObjectValue(attrs,
+                                p.substring(1, p.length - 1));
+                    } else {
+                        q = p;
+                    }
+                    if (q.toString() !== "") {
+                        syncUrl += "/" + encodeURIComponent(q);
+                    }
+                }
+                if (path.charAt(path.length - 1) === "/") {
+                    syncUrl += "/";
+                }
             }
             return syncUrl;
         }
