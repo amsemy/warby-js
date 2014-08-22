@@ -61,20 +61,6 @@
 
             });
 
-            describe("assertTrue", function() {
-
-                it("должна проверять проверять условие и обновлять статус проверки валидности поля", function() {
-                    form.assertTrue("errA", true);
-                    form.assertTrue("errA", false);
-                    expect(setStub.callCount).toBe(2);
-                    expect(setStub.firstCall.args[0]).toBe("errA");
-                    expect(setStub.firstCall.args[1]).toBe(false);
-                    expect(setStub.secondCall.args[0]).toBe("errA");
-                    expect(setStub.secondCall.args[1]).toBe(true);
-                });
-
-            });
-
             describe("create", function() {
 
                 it("дефолтные поля, указанные при создании формы, должны автоматически валидироваться", function() {
@@ -137,24 +123,16 @@
 
             });
 
-            describe("makeInvalid", function() {
+            describe("makeValidation", function() {
 
-                it("должна сделать статус проверки валидности поля неудачным", function() {
-                    form.makeInvalid("errA");
-                    expect(setStub.callCount).toBe(1);
-                    expect(setStub.firstCall.args[0]).toBe("errA");
-                    expect(setStub.firstCall.args[1]).toBe(true);
-                });
-
-            });
-
-            describe("makeValid", function() {
-
-                it("должна сделать статус проверки валидности поля успешным", function() {
-                    form.makeValid("errA");
-                    expect(setStub.callCount).toBe(1);
+                it("должна проверять проверять условие и обновлять статус проверки валидности поля", function() {
+                    form.makeValidation("errA", true);
+                    form.makeValidation("errA", false);
+                    expect(setStub.callCount).toBe(2);
                     expect(setStub.firstCall.args[0]).toBe("errA");
                     expect(setStub.firstCall.args[1]).toBe(false);
+                    expect(setStub.secondCall.args[0]).toBe("errA");
+                    expect(setStub.secondCall.args[1]).toBe(true);
                 });
 
             });
@@ -164,7 +142,7 @@
                 it("должена валидировать форму и возвращать результат валидации формы", function() {
                     form = new Form();
                     expect(form.validate()).toBeUndefined();
-                    form.makeInvalid("errA");
+                    form.makeValidation("errA");
                     expect(form.validate()).toBe("Form is invalid");
                 });
 
@@ -173,11 +151,11 @@
                     form.errors = {
                         fixtures: ["set of errors"]
                     };
-                    form.makeInvalid("serviceError");
-                    form.makeInvalid("serviceValidity");
-                    form.makeInvalid("foo.serviceValidity");
-                    form.makeInvalid("foo.bar.serviceValidity");
-                    form.makeInvalid("baz.serviceError");
+                    form.makeValidation("serviceError");
+                    form.makeValidation("serviceValidity");
+                    form.makeValidation("foo.serviceValidity");
+                    form.makeValidation("foo.bar.serviceValidity");
+                    form.makeValidation("baz.serviceError");
                     expect(form.validate()).toBeUndefined();
                     expect(form.errors).toEqual({});
                 });

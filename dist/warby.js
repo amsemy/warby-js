@@ -438,11 +438,10 @@
                 }
                 var paths = path.split("/");
                 for (var i = 0, il = paths.length; i < il; i++) {
-                    var p = paths[i];
+                    var p = paths[i], q;
                     if (p.charAt(0) === "{"
                             && p.charAt(p.length - 1) === "}") {
-                        var q = getObjectValue(attrs,
-                                p.substring(1, p.length - 1));
+                        q = getObjectValue(attrs, p.substring(1, p.length - 1));
                     } else {
                         q = p;
                     }
@@ -743,28 +742,14 @@
 
             // Убеждается, что значение является корректным email-адресом.
             assertEmail: function(keypath, value) {
-                return this.assertTrue(keypath, email.test(value));
+                return this.makeValidation(keypath, email.test(value));
             },
 
             // Убеждается, что условие истинно и обновляет статус проверки
             // валидности поля.
-            assertTrue: function(keypath, condition) {
-                if (condition) {
-                    this.makeValid(keypath);
-                } else {
-                    this.makeInvalid(keypath);
-                }
-                return condition;
-            },
-
-            // Делает статус проверки валидности поля неудачным.
-            makeInvalid: function(keypath) {
-                this.validityStatus.set(keypath, true);
-            },
-
-            // Делает статус проверки валидности поля успешным.
-            makeValid: function(keypath) {
-                this.validityStatus.set(keypath, false);
+            makeValidation: function(keypath, condition) {
+                this.validityStatus.set(keypath, !condition);
+                return condition
             },
 
             // Валидирует форму.
