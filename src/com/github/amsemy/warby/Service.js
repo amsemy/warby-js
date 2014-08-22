@@ -206,11 +206,10 @@
                 }
                 var paths = path.split("/");
                 for (var i = 0, il = paths.length; i < il; i++) {
-                    var p = paths[i];
+                    var p = paths[i], q;
                     if (p.charAt(0) === "{"
                             && p.charAt(p.length - 1) === "}") {
-                        var q = getObjectValue(attrs,
-                                p.substring(1, p.length - 1));
+                        q = getObjectValue(attrs, p.substring(1, p.length - 1));
                     } else {
                         q = p;
                     }
