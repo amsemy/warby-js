@@ -3,11 +3,11 @@
     var unit = ns.unit('com.github.amsemy.warby.FormSpec', implementation);
 
     unit.require('com.github.amsemy.warby.Form');
-    unit.require('com.github.amsemy.warby.response.InvalidResponse');
+//    unit.require('com.github.amsemy.warby.response.InvalidResponse');
 
     function implementation(units) {
-        var Form = units.com.github.amsemy.warby.Form,
-            InvalidResponse = units.com.github.amsemy.warby.response.InvalidResponse;
+        var Form = units.com.github.amsemy.warby.Form;
+//            InvalidResponse = units.com.github.amsemy.warby.response.InvalidResponse;
 
         describe("com.github.amsemy.warby.Form", function() {
 
@@ -112,9 +112,9 @@
                 });
 
                 it("должна обновить статус валидации формы ошибками валидации сервиса", function() {
-                    var resp = new InvalidResponse({
+                    var resp = {
                         errors: {}
-                    });
+                    };
                     form.handlers.error(resp);
                     expect(loadErrStub.callCount).toBe(1);
                     expect(loadErrStub.firstCall.args[0]).toBe("serviceValidity");

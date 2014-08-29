@@ -34,14 +34,14 @@
                     };
                 });
 
-                it("должна вызывать функцию сервиса", function() {
+                it("должна вызывать метод сервиса", function() {
                     var args = [1, "2", {}];
                     testService.apply("foo", args);
                     expect(fooSpy.called).toBeTruthy();
                     expect(fooSpy.firstCall.args).toEqual(args);
                 });
 
-                it("должна возвращать результат функции сервиса", function() {
+                it("должна возвращать результат метода сервиса", function() {
                     expect(testService.apply("bar"))
                         .toBe(testService.api.bar.func());
                 });
@@ -91,14 +91,14 @@
                     };
                 });
 
-                it("должна вызывать функцию сервиса", function() {
+                it("должна вызывать метод сервиса", function() {
                     var args = [1, "2", {}];
                     testService.call("foo", args[0], args[1], args[2]);
                     expect(fooSpy.called).toBeTruthy();
                     expect(fooSpy.firstCall.args).toEqual(args);
                 });
 
-                it("должна возвращать результат функции сервиса", function() {
+                it("должна возвращать результат метода сервиса", function() {
                     expect(testService.call("bar"))
                         .toBe(testService.api.bar.func());
                 });
@@ -278,7 +278,7 @@
                     checkSpies();
                 });
 
-                it("настройки синхронизационного запроса можно переопределить через `options.func`, указав имя нужной функции сервиса", function() {
+                it("настройки синхронизационного запроса можно переопределить через `options.apiMethod`, указав имя нужного метода сервиса", function() {
                     var model = new TestModel();
                     testService.bind(model);
                     var collection = new TestCollection();
@@ -287,7 +287,7 @@
                     //--------------------------------------------------------
 
                     model.fetch({
-                            func: "bar",
+                            apiMethod: "bar",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -302,7 +302,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "bar",
+                            apiMethod: "bar",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -329,7 +329,7 @@
                     //--------------------------------------------------------
 
                     model.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -344,7 +344,7 @@
                     //--------------------------------------------------------
 
                     model.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -381,7 +381,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -396,7 +396,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -411,7 +411,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 b: "def",
                                 c: {d: "D1"}
@@ -430,7 +430,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 b: "def",
                                 c: {d: "D2"}
@@ -449,7 +449,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 a: 789,
                                 b: "ghi",
@@ -469,7 +469,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 a: 789,
                                 b: "ghi",
@@ -513,7 +513,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -528,7 +528,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -543,7 +543,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 b: "def",
                                 c: {d: "D2"}
@@ -562,7 +562,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 b: "def",
                                 c: {d: "D2"}
@@ -581,7 +581,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 a: 789,
                                 b: "ghi"
@@ -598,7 +598,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 a: 789,
                                 b: "ghi",
@@ -649,7 +649,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -664,7 +664,7 @@
                     //--------------------------------------------------------
 
                     model1.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             success: successSpy,
                             error: errorSpy
                         })
@@ -679,7 +679,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 b: "def",
                                 c: {d: "D2"},
@@ -699,7 +699,7 @@
                     //--------------------------------------------------------
 
                     model2.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 b: "def",
                                 c: {d: "D2"},
@@ -719,7 +719,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "baz",
+                            apiMethod: "baz",
                             attrs: {
                                 a: 789,
                                 b: "ghi",
@@ -740,7 +740,7 @@
                     //--------------------------------------------------------
 
                     collection.fetch({
-                            func: "qux",
+                            apiMethod: "qux",
                             attrs: {
                                 a: 789,
                                 b: "ghi",
@@ -772,7 +772,7 @@
                     //--------------------------------------------------------
 
                     model.fetch({
-                        func: "baz",
+                        apiMethod: "baz",
                         success: successSpy,
                         error: errorSpy
                     })
@@ -784,45 +784,53 @@
                     checkSpies();
                 });
 
-                it("должна корректно обрабатывать неудачный ответ сервера", function() {
+                it("должна обрабатывать ответ сервера, если задан `bodyReader`", function() {
+                    var serviceSpy = sinon.spy(),
+                        methodSpy = sinon.spy();
+                    testService.api.baz = {
+                        type: "GET",
+                        path: "baz",
+                        bodyReader: {
+                            wrap: function(options) {
+                                options.success = methodSpy();
+                            }
+                        }
+                    };
+                    testService.bodyReader = {
+                        wrap: function(options) {
+                            options.success = serviceSpy;
+                        }
+                    };
                     var model = new TestModel();
                     testService.bind(model);
+                    server.respondWith(getModelResp());
+
+                    //--------------------------------------------------------
+
+                    model.fetch()
+                        .done(doneSpy)
+                        .fail(failSpy);
+
+                    server.respond();
+
+                    expect(serviceSpy.called).toBeTruthy();
+                    expect(methodSpy.called).toBeFalsy();
+
+                    serviceSpy.reset();
+                    methodSpy.reset();
 
                     //--------------------------------------------------------
 
                     model.fetch({
-                            success: successSpy,
-                            error: errorSpy
+                            apiMethod: "baz"
                         })
                         .done(doneSpy)
                         .fail(failSpy);
 
-                    server.respondWith(getFailureResp());
                     server.respond();
 
-                    expect(doneSpy.called).toBeTruthy();
-                    expect(failSpy.called).toBeFalsy();
-                    expect(successSpy.called).toBeFalsy();
-                    expect(errorSpy.called).toBeTruthy();
-
-                    resetSpies();
-
-                    //--------------------------------------------------------
-
-                    model.fetch({
-                            success: successSpy,
-                            error: errorSpy
-                        })
-                        .done(doneSpy)
-                        .fail(failSpy);
-
-                    server.respondWith(getInvalidResp());
-                    server.respond();
-
-                    expect(doneSpy.called).toBeTruthy();
-                    expect(failSpy.called).toBeFalsy();
-                    expect(successSpy.called).toBeFalsy();
-                    expect(errorSpy.called).toBeTruthy();
+                    expect(serviceSpy.called).toBeFalsy();
+                    expect(methodSpy.called).toBeTruthy();
                 });
 
             });
@@ -895,37 +903,16 @@
         }
 
         function getCollectionResp() {
-            return JSON.stringify({
-                data: [
-                    {id: 1},
-                    {id: 2},
-                    {id: 3}
-                ],
-                status: "SUCCESS"
-            });
-        }
-
-        function getFailureResp() {
-            return JSON.stringify({
-                status: "FAILURE"
-            });
-        }
-
-        function getInvalidResp() {
-            return JSON.stringify({
-                errors: [
-                    "Validation error"
-                ],
-                status: "INVALID"
-            });
+            return JSON.stringify([
+                {id: 1},
+                {id: 2},
+                {id: 3}
+            ]);
         }
 
         function getModelResp() {
             return JSON.stringify({
-                data: {
-                    id: 1
-                },
-                status: "SUCCESS"
+                id: 1
             });
         }
 

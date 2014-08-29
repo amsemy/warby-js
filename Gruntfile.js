@@ -21,8 +21,9 @@ module.exports = function(grunt) {
                 files: {
                     'dist/warby.js': [
                         'src/com/github/amsemy/warby/unit/View.js',
+                        'src/com/github/amsemy/warby/Form.js',
                         'src/com/github/amsemy/warby/Service.js',
-                        'src/com/github/amsemy/warby/Form.js'
+                        'src/com/github/amsemy/warby/restyBodyReader.js'
                     ]
                 }
             }

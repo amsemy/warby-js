@@ -4,19 +4,13 @@
 
     var unit = ns.unit('com.github.amsemy.warby.Service', implementation);
 
-    unit.require('com.github.amsemy.warby.response.FailureResponse');
-    unit.require('com.github.amsemy.warby.response.InvalidResponse');
-    unit.require('com.github.amsemy.warby.response.SuccessResponse');
     unit.require('com.github.amsemy.warby.template');
     unit.require('lib.*');
 
     function implementation(units) {
         var Backbone = units.lib.Backbone,
             _ = units.lib._;
-        var FailureResponse = units.com.github.amsemy.warby.response.FailureResponse,
-            InvalidResponse = units.com.github.amsemy.warby.response.InvalidResponse,
-            SuccessResponse = units.com.github.amsemy.warby.response.SuccessResponse,
-            template = units.com.github.amsemy.warby.template;
+        var template = units.com.github.amsemy.warby.template;
 
         var Service = function() {};
 
@@ -28,13 +22,16 @@
             // Хэш-коллекция методов сервиса.
             api: {},
 
-            // Вызывает функцию сервиса.
+            // Вызывает метод сервиса.
             apply: function(name, args) {
-                var apiFunc = getApiFunc(this, name);
-                if (apiFunc) {
-                    return apiFunc.func.apply(this, args);
+                var apiMethod = getApiMethod(this, name);
+                if (apiMethod) {
+                    return apiMethod.func.apply(this, args);
                 }
             },
+
+            // TODO
+            bodyReader: null,
 
             // Связывает модель/коллекцию с сервисом.
             bind: function(model) {
@@ -46,15 +43,15 @@
                 }
             },
 
-            // Вызывает функцию сервиса.
+            // Вызывает метод сервиса.
             call: function(name) {
-                var apiFunc = getApiFunc(this, name);
-                if (apiFunc) {
+                var apiMethod = getApiMethod(this, name);
+                if (apiMethod) {
                     if (arguments.length > 1) {
                         var args = Array.prototype.slice.call(arguments, 1);
-                        return apiFunc.func.apply(this, args);
+                        return apiMethod.func.apply(this, args);
                     } else {
-                        return apiFunc.func.call(this);
+                        return apiMethod.func.call(this);
                     }
                 }
             }
@@ -72,35 +69,36 @@
             // объект.
             var attrs = _.extend(model.toJSON(options), options.attrs);
 
-            // Если при синхронизации модели нужно использывать другую функцию
-            // сервиса, то её можно указать через `options.func`.
-            var name = options.func;
-
             // Backbone при синхронизации передаёт параметр `method`. По нему
-            // находим в `model.apiMapping` имя функции сервиса.
-            if (!options.func) {
-                name = getApiFuncName(model, method);
-                if (!name) {
+            // находим в `model.apiMapping` имя метода сервиса. Если при
+            // синхронизации модели нужно использывать другой метод сервиса, то
+            // его можно указать через `options.apiMethod`.
+            if (options.apiMethod) {
+                method = options.apiMethod;
+            } else {
+                method = getApiMethodName(model, method);
+                if (!method) {
                     throw new Error("Unsupported sync method '" + method + "'");
                 }
             }
-            var apiFunc = getApiFunc(model.service, name);
-            if (!apiFunc) {
-                throw new Error("Unsupported API function '" + name + "'");
+
+            var apiMethod = getApiMethod(model.service, method);
+            if (!apiMethod) {
+                throw new Error("Unsupported API method '" + method + "'");
             }
 
-            var type = apiFunc.type;
+            var type = apiMethod.type;
 
             // Получить URL с подстановкой аттрибутов модели в шаблон адреса
             // запроса.
-            var url = getSyncUrl(model.service, attrs, apiFunc);
+            var url = getSyncUrl(model.service, attrs, apiMethod);
 
             // Добавить параметры запроса в URL.
-            if (apiFunc.params) {
+            if (apiMethod.params) {
                 url = template.url({
                     adr: url,
                     base: "",
-                    params: getParamsObj(attrs, apiFunc.params)
+                    params: getParamsObj(attrs, apiMethod.params)
                 });
             }
 
@@ -120,19 +118,10 @@
             }
 
             // Извлечь результат запроса из контейнера.
-            var success = options.success;
-            options.success = function(resp) {
-                var r = parseResponse(resp);
-                if (r instanceof SuccessResponse) {
-                    if (success) {
-                        success(r.data);
-                    }
-                } else {
-                    if (options.error) {
-                        options.error(r);
-                    }
-                }
-            };
+            var bodyReader = apiMethod.bodyReader || model.service.bodyReader;
+            if (bodyReader) {
+                bodyReader.wrap(options);
+            }
 
             // Make the request, allowing the user to override any Ajax options.
             var xhr = options.xhr = Backbone.ajax(_.extend(defaults, options));
@@ -154,21 +143,23 @@
             }
         }
 
-        function getApiFunc(service, name) {
+        function getApiMethod(service, name) {
             if (service.api) {
-                var apiFunc = service.api[name];
-                if (!apiFunc) {
-                    apiFunc = getApiFunc(service.constructor.__super__, name);
+                var apiMethod = service.api[name];
+                if (!apiMethod) {
+                    apiMethod = getApiMethod(
+                            service.constructor.__super__, name);
                 }
-                return apiFunc;
+                return apiMethod;
             }
         }
 
-        function getApiFuncName(model, method) {
+        function getApiMethodName(model, method) {
             if (model.apiMapping) {
                 var name = model.apiMapping[method];
                 if (!name) {
-                    name = getApiFuncName(model.constructor.__super__, method);
+                    name = getApiMethodName(
+                            model.constructor.__super__, method);
                 }
                 return name;
             }
@@ -197,9 +188,9 @@
             return result;
         }
 
-        function getSyncUrl(service, attrs, apiFunc) {
+        function getSyncUrl(service, attrs, apiMethod) {
             var syncUrl = service.url,
-                path = apiFunc.path;
+                path = apiMethod.path;
             if (path.length > 0) {
                 if (syncUrl.charAt(syncUrl.length - 1) === "/") {
                     syncUrl = syncUrl.substring(0, syncUrl.length - 1);
@@ -222,19 +213,6 @@
                 }
             }
             return syncUrl;
-        }
-
-        function parseResponse(resp) {
-            switch (resp.status) {
-                case "INVALID":
-                    return new InvalidResponse(resp);
-                    break;
-                case "SUCCESS":
-                    return new SuccessResponse(resp);
-                    break;
-                default:
-                    return new FailureResponse();
-            }
         }
 
         return Service;

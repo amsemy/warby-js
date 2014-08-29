@@ -5,13 +5,11 @@
     var unit = ns.unit('com.github.amsemy.warby.Form', implementation);
 
     unit.require('com.github.amsemy.warby.ValidityStatus');
-    unit.require('com.github.amsemy.warby.response.InvalidResponse');
     unit.require('lib.*');
 
     function implementation(units) {
         var Backbone = units.lib.Backbone;
-        var InvalidResponse = units.com.github.amsemy.warby.response.InvalidResponse,
-            ValidityStatus = units.com.github.amsemy.warby.ValidityStatus;
+        var ValidityStatus = units.com.github.amsemy.warby.ValidityStatus;
 
         var email = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -35,7 +33,7 @@
                 // Обработчики событий синхронизации модели с сервером.
                 this.handlers = {
                     error: function(resp) {
-                        if (resp instanceof InvalidResponse) {
+                        if (resp && resp.errors) {
                             self.errors = resp.errors;
                             self.validityStatus.loadErrors(
                                     "serviceValidity", resp.errors);
@@ -59,7 +57,7 @@
             // валидности поля.
             makeValidation: function(keypath, condition) {
                 this.validityStatus.set(keypath, !condition);
-                return condition
+                return condition;
             },
 
             // Валидирует форму.
