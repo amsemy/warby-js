@@ -790,6 +790,11 @@
                     testService.api.baz = {
                         type: "GET",
                         path: "baz",
+                        bodyReader: null
+                    };
+                    testService.api.qux = {
+                        type: "GET",
+                        path: "qux",
                         bodyReader: {
                             wrap: function(options) {
                                 options.success = methodSpy();
@@ -815,9 +820,13 @@
 
                     expect(serviceSpy.called).toBeTruthy();
                     expect(methodSpy.called).toBeFalsy();
+                    expect(doneSpy.called).toBeTruthy();
+                    expect(failSpy.called).toBeFalsy();
 
                     serviceSpy.reset();
                     methodSpy.reset();
+                    doneSpy.reset();
+                    failSpy.reset();
 
                     //--------------------------------------------------------
 
@@ -830,7 +839,29 @@
                     server.respond();
 
                     expect(serviceSpy.called).toBeFalsy();
+                    expect(methodSpy.called).toBeFalsy();
+                    expect(doneSpy.called).toBeTruthy();
+                    expect(failSpy.called).toBeFalsy();
+
+                    serviceSpy.reset();
+                    methodSpy.reset();
+                    doneSpy.reset();
+                    failSpy.reset();
+
+                    //--------------------------------------------------------
+
+                    model.fetch({
+                            apiMethod: "qux"
+                        })
+                        .done(doneSpy)
+                        .fail(failSpy);
+
+                    server.respond();
+
+                    expect(serviceSpy.called).toBeFalsy();
                     expect(methodSpy.called).toBeTruthy();
+                    expect(doneSpy.called).toBeTruthy();
+                    expect(failSpy.called).toBeFalsy();
                 });
 
             });
