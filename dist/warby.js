@@ -523,7 +523,8 @@
                 }
             },
 
-            // TODO
+            // Создаёт обёртку для `options.success` и `options.error`, которая
+            // будет парсить ответ сервера.
             bodyReader: null,
 
             // Связывает модель/коллекцию с сервисом.
@@ -611,7 +612,8 @@
             }
 
             // Извлечь результат запроса из контейнера.
-            var bodyReader = apiMethod.bodyReader || model.service.bodyReader;
+            var bodyReader = (apiMethod.bodyReader !== undefined
+                    ? apiMethod.bodyReader : model.service.bodyReader);
             if (bodyReader) {
                 bodyReader.wrap(options);
             }
