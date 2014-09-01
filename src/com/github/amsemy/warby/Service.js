@@ -30,10 +30,6 @@
                 }
             },
 
-            // Создаёт обёртку для `options.success` и `options.error`, которая
-            // будет парсить ответ сервера.
-            bodyReader: null,
-
             // Связывает модель/коллекцию с сервисом.
             bind: function(model) {
                 if (model) {
@@ -55,7 +51,11 @@
                         return apiMethod.func.call(this);
                     }
                 }
-            }
+            },
+
+            // Callback `Service.provider(model, options)`, настраивает методы
+            // сервиса в процессе синхронизации.
+            provider: null
 
         });
 
@@ -65,10 +65,6 @@
         // Синхронизирует модель/коллекцию.
         Service.sync = function(method, model, options) {
             options || (options = {});
-
-            // Атрибуты модели. Для коллекции массив будет использован как
-            // объект.
-            var attrs = _.extend(model.toJSON(options), options.attrs);
 
             // Backbone при синхронизации передаёт параметр `method`. По нему
             // находим в `model.apiMapping` имя метода сервиса. Если при
@@ -82,11 +78,21 @@
                     throw new Error("Unsupported sync method '" + method + "'");
                 }
             }
-
             var apiMethod = getApiMethod(model.service, method);
             if (!apiMethod) {
                 throw new Error("Unsupported API method '" + method + "'");
             }
+
+            // Выполнить специфичные для метода сервиса настройки.
+            var provider = (apiMethod.provider !== undefined
+                    ? apiMethod.provider : model.service.provider);
+            if (provider) {
+                provider(model, options);
+            }
+
+            // Атрибуты модели. Для коллекции массив будет использован как
+            // объект.
+            var attrs = _.extend(model.toJSON(options), options.attrs);
 
             var type = apiMethod.type;
 
@@ -116,13 +122,6 @@
                 defaults.data = JSON.stringify(
                         options.attrs || model.toJSON(options));
                 defaults.processData = false;
-            }
-
-            // Извлечь результат запроса из контейнера.
-            var bodyReader = (apiMethod.bodyReader !== undefined
-                    ? apiMethod.bodyReader : model.service.bodyReader);
-            if (bodyReader) {
-                bodyReader.wrap(options);
             }
 
             // Make the request, allowing the user to override any Ajax options.

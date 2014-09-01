@@ -784,27 +784,23 @@
                     checkSpies();
                 });
 
-                it("должна обрабатывать ответ сервера, если задан `bodyReader`", function() {
+                it("должна обрабатывать ответ сервера, если задан `provider`", function() {
                     var serviceSpy = sinon.spy(),
                         methodSpy = sinon.spy();
                     testService.api.baz = {
                         type: "GET",
                         path: "baz",
-                        bodyReader: null
+                        provider: null
                     };
                     testService.api.qux = {
                         type: "GET",
                         path: "qux",
-                        bodyReader: {
-                            wrap: function(options) {
-                                options.success = methodSpy();
-                            }
+                        provider: function(model, options) {
+                            options.success = methodSpy();
                         }
                     };
-                    testService.bodyReader = {
-                        wrap: function(options) {
-                            options.success = serviceSpy;
-                        }
+                    testService.provider = function(model, options) {
+                        options.success = serviceSpy;
                     };
                     var model = new TestModel();
                     testService.bind(model);
