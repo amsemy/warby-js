@@ -1,4 +1,6 @@
 .grunt
+.idea
+build
 lib
 node_modules
 _SpecRunner.html

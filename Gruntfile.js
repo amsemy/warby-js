@@ -1,91 +1,34 @@
+const webpackConfig = require('./webpack.config');
+const webpackTestConfig = require('./webpack.test.config');
+
 module.exports = function(grunt) {
 
     grunt.initConfig({
 
         pkg: grunt.file.readJSON('package.json'),
 
-        bower: {
-            all: {
-                options: {
-                    cleanBowerDir: true
-                }
-            }
-        },
-
-        gumup: {
-            all: {
-                options: {
-                    onResolve: 'concat.all.files',
-                    unitPath: ['src']
-                },
-                files: {
-                    'dist/warby.js': [
-                        'src/com/github/amsemy/warby/unit/View.js',
-                        'src/com/github/amsemy/warby/Form.js',
-                        'src/com/github/amsemy/warby/Service.js',
-                        'src/com/github/amsemy/warby/restyProvider.js'
-                    ]
-                }
-            }
-        },
-
-        concat: {
-            all: {}
-        },
-
-        uglify: {
-            all: {
-                files: {
-                    'dist/warby.min.js': 'dist/warby.js'
-                }
-            },
-            options: {
-                sourceMap: true
-            }
+        webpack: {
+            dist: webpackConfig,
+            test: webpackTestConfig
         },
 
         jasmine: {
             all: {
                 src: [
-
-                    // Библиотеки приложения
-                    'lib/jquery/jquery.js',
-                    'lib/underscore/underscore.js',
-                    'lib/backbone/backbone.js',
-                    'lib/gumup/gumup.js',
-
-                    // Приложение
-                    'src/**/*.js'
-                ],
-                options: {
-                    specs: [
-
-                        // Библиотеки тестирования
-                        'lib/sinon-1.10.3/index.js',
-
-                        // Тесты
-                        'spec/**/*.js',
-
-                        // Запускалка тестов
-                        'config/test.js'
-                    ],
-                    version: '1.3.1'
-                }
+                    'build/warby.spec.js'
+                ]
             }
         }
 
     });
 
-    grunt.loadNpmTasks('grunt-bower-task');
-    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-gumup');
+    grunt.loadNpmTasks("grunt-webpack");
 
-    grunt.registerTask('make', ['gumup', 'concat', 'uglify']);
-    grunt.registerTask('test', ['make', 'jasmine']);
-    grunt.registerTask('spec', ['jasmine:all:build']);
+    grunt.registerTask('dist', ['webpack:dist']);
+    grunt.registerTask('test', ['webpack:test', 'jasmine']);
+    grunt.registerTask('spec', ['webpack:test', 'jasmine:all:build']);
 
-    grunt.registerTask('default', ['bower', 'test']);
+    grunt.registerTask('default', ['dist']);
 
 };
