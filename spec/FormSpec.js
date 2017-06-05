@@ -1,5 +1,6 @@
 var sinon = require("sinon");
-var Form = require("warby/Form");
+
+var Form = require("Src/Form");
 
 describe("Form", function() {
 

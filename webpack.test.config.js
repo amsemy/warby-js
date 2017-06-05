@@ -14,7 +14,7 @@ module.exports = {
     },
     resolve: {
         alias: {
-            warby: path.resolve(__dirname, 'src')
+            Src: path.resolve(__dirname, 'src')
         }
     },
     plugins: [

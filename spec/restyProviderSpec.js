@@ -1,5 +1,6 @@
 var sinon = require("sinon");
-var restyProvider = require("warby/restyProvider");
+
+var restyProvider = require("Src/restyProvider");
 
 describe("restyProvider", function() {
 

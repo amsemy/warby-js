@@ -1,6 +1,7 @@
 var $ = require("jquery"),
     sinon = require("sinon");
-var template = require("warby/template");
+
+var template = require("Src/template");
 
 describe("template", function() {
 

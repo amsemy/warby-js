@@ -1,4 +1,4 @@
-var ValidityStatus = require("warby/ValidityStatus");
+var ValidityStatus = require("Src/ValidityStatus");
 
 function createBig() {
     var vs = new ValidityStatus;

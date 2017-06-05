@@ -1,7 +1,8 @@
 var /*Backbone = require("backbone"),*/
     sinon = require("sinon");
-var Service = require("warby/Service"),
-    template = require("warby/template");
+
+var Service = require("Src/Service"),
+    template = require("Src/template");
 
 var url = template.url;
 

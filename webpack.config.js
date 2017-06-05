@@ -18,8 +18,7 @@ module.exports = {
             compress: {
                 warnings: false
             },
-            include: /\.min\.js$/,
-            sourceMap: true
+            include: /\.min\.js$/
         }),
         new webpack.SourceMapDevToolPlugin({
             filename: '[name].js.map',
