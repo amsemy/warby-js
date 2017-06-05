@@ -1,18 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
 
-const src = [
-    './View.js',
-    './Form.js',
-    './Service.js',
-    './restyProvider.js'
-];
-
 module.exports = {
     context: path.resolve(__dirname, 'src'),
     entry: {
-        'warby': src,
-        'warby.min': src
+        'warby': './main.js',
+        'warby.min': './main.js'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),

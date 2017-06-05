@@ -7,7 +7,7 @@
 		exports["Warby"] = factory(require("backbone"), require("jquery"), require("underscore"));
 	else
 		root["Warby"] = factory(root["Backbone"], root["jQuery"], root["_"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -84,15 +84,259 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+"use strict";
+
+
+var _ = __webpack_require__(5),
+    Backbone = __webpack_require__(0);
+
+// Статус валидации
+// ----------------
+var ValidityStatus = function() {
+
+    // Упрощённая модель статуса валидации формы для связывания с
+    // представлением при помощи Rivets.
+    this.model = new Backbone.Model({
+        $invalid: false,
+        $valid: true
+    });
+
+    // Статус валидации полей.
+    //
+    //  status: {
+    //      __self__: [
+    //          hasErrA: true,
+    //          hasErrB: false,
+    //          invalid: true,
+    //          valid: false
+    //      ],
+    //      foo: {
+    //          __self__: [
+    //              hasErrС: false,
+    //              invalid: false,
+    //              valid: true
+    //          ],
+    //          bar: {
+    //              __self__: [
+    //                  hasErrD: true,
+    //                  invalid: true,
+    //                  valid: false
+    //              ]
+    //          }
+    //      }
+    //  }
+    this.status = {
+        __self__: {
+            invalid: false,
+            valid: true
+        }
+    };
+};
+
+// Для полей, перечисленных в ошибках `errors`, выставляет флаг
+// невалидности с именем `flag`. Если указан путь `base`, то он будет
+// добавлен к названию полей ошибок.
+ValidityStatus.prototype.loadErrors = function(flag, errors, base) {
+    var path = [],
+        stack = [this.status];
+    if (base != null) {
+        var keys = base.split(".");
+        for (var i = 0, il = keys.length; i < il; i++) {
+            var key = keys[i];
+            if (key === "") {
+                throw new Error("Invalid base '" + base + "'");
+            } else if (key === "__self__") {
+                throw new Error("Mustn't use '__self__' in base '"
+                        + base + "'");
+            }
+            var val = stack[i];
+            val[key] = val[key] || {};
+            stack.push(val[key]);
+            path.push(key);
+        }
+    }
+    loadErrors(this, flag, stack.pop(), errors,
+            path.length ? path.join("_") + "_" : "");
+    for (i = path.length - 1; i >= 0; i--) {
+        updateValidity(this, stack[i],
+                i ? path.slice(0, i).join("_") + "_" : "");
+    }
+};
+
+// Убирает у всех полей флаги невалидности `flags`. Если указан путь
+// `base`, то обработаны будут только те поля, которые расположены по
+// этому пути.
+ValidityStatus.prototype.removeErrors = function(flags, base) {
+    var path = [],
+        stack = [this.status];
+    if (!_.isArray(flags)) {
+        flags = [flags];
+    }
+    if (base != null) {
+        var keys = base.split(".");
+        for (var i = 0, il = keys.length; i < il; i++) {
+            var key = keys[i];
+            if (key === "") {
+                throw new Error("Invalid base '" + base + "'");
+            } else if (key === "__self__") {
+                throw new Error("Mustn't use '__self__' in base '"
+                        + base + "'");
+            }
+            var val = stack[i];
+            val[key] = val[key] || {};
+            stack.push(val[key]);
+            path.push(key);
+        }
+    }
+    removeErrors(this, flags, stack.pop(),
+            path.length ? path.join("_") + "_" : "");
+    for (i = path.length - 1; i >= 0; i--) {
+        updateValidity(this, stack[i],
+                i ? path.slice(0, i).join("_") + "_" : "");
+    }
+};
+
+// Устанавливает значение флага проверки валидности поля и рекурсивно
+// обновляет статус валидации родительских полей.
+ValidityStatus.prototype.set = function(keypath, status) {
+    var keys = keypath.split("."),
+        path = [],
+        stack = [this.status];
+    for (var i = 0, il = keys.length; i < il; i++) {
+        var key = keys[i];
+        if (key === "") {
+            throw new Error("Invalid keypath '" + keypath + "'");
+        } else if (key === "__self__") {
+            throw new Error("Mustn't use '__self__' in keypath '"
+                    + keypath + "'");
+        }
+        var val = stack[i];
+        if (i + 1 === il) {
+            val.__self__ = val.__self__ || {};
+            val.__self__[key] = status;
+            this.model.set(
+                    (i ? path.join("_") + "_$" : "$") + key,
+                    status);
+            break;
+        } else {
+            val[key] = val[key] || {};
+        }
+        stack.push(val[key]);
+        path.push(key);
+    }
+    for (i = stack.length - 1; i >= 0; i--) {
+        updateValidity(this, stack[i],
+                i ? path.slice(0, i).join("_") + "_" : "");
+    }
+};
+
+function loadErrors(vs, flag, val, err, attrpref) {
+    for (var key in err) {
+        if (key === "__self__") {
+            if (err.__self__.length) {
+                val.__self__ = val.__self__ || {};
+                val.__self__[flag] = true;
+                vs.model.set(attrpref + "$" + flag, true);
+            }
+        } else {
+            val[key] = val[key] || {};
+            loadErrors(vs, flag, val[key], err[key],
+                    attrpref + key + "_");
+        }
+    }
+    updateValidity(vs, val, attrpref);
+}
+
+function removeErrors(vs, flags, val, attrpref) {
+    for (var key in val) {
+        if (key === "__self__") {
+            for (var i = flags.length - 1; i >= 0; i--) {
+                var flag = flags[i];
+                delete val.__self__[flag];
+                vs.model.unset(attrpref + "$" + flag);
+            }
+        } else if (_.isObject(val[key])) {
+            removeErrors(vs, flags, val[key], attrpref + key + "_");
+        }
+    }
+    updateValidity(vs, val, attrpref);
+}
+
+function updateValidity(vs, val, attrpref) {
+    var key,
+        valid = true;
+    val.__self__ = val.__self__ || {};
+    for (key in val.__self__) {
+        if (key !== "invalid" && key !== "valid"
+                && val.__self__[key]) {
+            valid = false;
+        }
+    }
+    if (valid) {
+        for (key in val) {
+            if (key !== "__self__"
+                    && val[key].__self__.invalid) {
+                valid = false;
+            }
+        }
+    }
+    val.__self__.invalid = !valid;
+    val.__self__.valid = valid;
+    vs.model.set(attrpref + "$invalid", !valid);
+    vs.model.set(attrpref + "$valid", valid);
+}
+
+module.exports = ValidityStatus;
+
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+"use strict";
+
+
+var $ = __webpack_require__(4);
+
+/**
+ * Параметры виджета.
+ *
+ * @namespace  Widget~Settings
+ * @property  {String} name
+ *            Имя виджета (id тега виджета).
+ * @property  {String} constructor
+ *            Функция-конструктор виджета.
+ */
+
+/**
+ * Создаёт виджет.
+ *
+ * @constructor
+ * @param  {Widget~Settings} settings
+ *         Параметры виджета.
+ */
+var Widget = function(settings) {
+    settings = (settings == null ? {} : settings);
+    if (settings.name == null || settings.name === "") {
+        throw new Error("Undefined 'settings.name' param");
+    }
+    this.name = settings.name;
+};
+
+/**
+ * Возвращает элемент, который содержит тело виджета.
+ *
+ * @returns  {jQuery}
+ *           Объект jQuery.
+ */
+Widget.prototype.getWidgetObj = function() {
+    return $("#" + this.name);
+};
+
+module.exports = Widget;
+
 
 /***/ }),
 /* 3 */
@@ -101,8 +345,207 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
 "use strict";
 
 
+var $ = __webpack_require__(4);
+
+/**
+ * Шаблонная страница.
+ *
+ * @namespace
+ */
+var template = {
+    __config: null
+};
+
+/**
+ * Создаёт виджет.
+ *
+ * @static
+ * @param  {Widget~Settings} settings
+ *         Параметры виджета.
+ * @returns  Виджет.
+ */
+template.createWidget = function(settings) {
+    return new (getModule(settings.constructor))(settings);
+};
+
+/**
+ * Возвращает адрес корня сайта. Если адрес не пустой, то проверяется,
+ * чтобы он оканчивался на `/`.
+ *
+ * @static
+ * @returns  {String}
+ *           Корень адреса сайта.
+ */
+template.getBaseUrl = function() {
+    var base = $("base").attr("href") || "";
+    return (base && base.charAt(base.length - 1) !== "/"
+            ? base + "/" : base);
+};
+
+/**
+ * Возвращает конфигурацию страницы.
+ *
+ * @returns  {Object}
+ *           Объект конфигурации страницы.
+ */
+template.getConfig = function() {
+    if (this.__config == null) {
+        this.__config = JSON.parse($(".template-config").html());
+    }
+    return this.__config;
+};
+
+/**
+ * Возвращает язык страницы.
+ *
+ * @returns  {String}
+ *           Код языка.
+ */
+template.getLang = function() {
+    var lang = this.getConfig().lang;
+    return (lang == null ? "en" : lang);
+};
+
+/**
+ * Отправляет на другую страницу.
+ *
+ * @static
+ * @param  {Object} settings
+ *         Параметры запроса:
+ *           - {String} method
+ *             Метод отправки формы - get или post.
+ *           - {Object} params
+ *             Объект, который содержит параметры запроса.
+ *           - {String} url
+ *             URL запроса. Параметр по умолчанию.
+ */
+template.directTo = function(settings) {
+    var method, params, url;
+    settings = (settings == null ? {} : settings);
+    if (settings instanceof Object) {
+        method = (settings.method == null ? "get" : settings.method);
+        params = (settings.params == null ? {} : settings.params);
+        url = (settings.url == null ? "" : settings.url);
+    } else {
+        method = "get";
+        params = {};
+        url = (settings == null ? "" : settings);
+    }
+    var formObj = $('<form class="hidden" method="' + method
+            + '" action="' + url + '"></form>')
+        .appendTo($("body"));
+    if (params instanceof Array) {
+        for (var p = 0, plen = params.length; p < plen; p++) {
+            formObj.append('<input name="' + params[p].name
+                    + '" value="' + params[p].value + '">');
+        }
+    } else {
+        for (var pname in params) {
+            if (params[pname] instanceof Array) {
+                for (var i = 0, len = params[pname].length; i < len; i++) {
+                    formObj.append('<input name="' + pname
+                            + '" value="' + params[pname][i] + '">');
+                }
+            } else {
+                formObj.append('<input name="' + pname
+                        + '" value="' + params[pname] + '">');
+            }
+        }
+    }
+    formObj.submit();
+};
+
+/**
+ * Возвращает полный URL, добавляя в начало адрес корня сайта.
+ *
+ * @static
+ * @param  {Object} settings
+ *           - {String} adr
+ *             Адрес запроса. Параметр по умолчанию. Если начинается
+ *             со `/`, то URL будет рассчитан как `base` + `adr`.
+ *           - {String} base
+ *             Корень адреса сайта. Если не указан, то считывается из
+ *             тэга `base`.
+ *           - {Object} params
+ *             Объект, который содержит параметры запроса.
+ */
+template.url = function(settings) {
+    var adr, base, params, url;
+    settings = (settings == null ? {} : settings);
+    if (settings instanceof Object) {
+        adr = (settings.adr == null ? "" : settings.adr);
+        base = (settings.base == null
+                ? template.getBaseUrl() : settings.base);
+        params = (settings.params == null
+                ? "" : $.param(settings.params));
+    } else {
+        adr = settings;
+        base = template.getBaseUrl();
+        params = "";
+    }
+    // Если `adr` начинается на `/`, то присоединить `base`, иначе
+    // использывать только `adr`
+    if (base != null && base !== "" && base !== "/"
+            && adr.charAt(0) === "/") {
+        // Избежать `//` при присоединении
+        if (base.charAt(base.length - 1) === "/") {
+            adr = adr.substring(1);
+        }
+        url = base + adr;
+    } else {
+        url = adr;
+    }
+    // Если URL уже содержит `?`, то параметры подставлять начиная с `&`
+    if (params) {
+        params = (url.indexOf("?") >= 0 ? "&" : "?") + params;
+    }
+    return url + params;
+};
+
+var getModule = function(name) {
+    var parts = name.split(".");
+    if (parts.length === 0) {
+        throw new Error("Invalid module name '" + name + "'");
+    } else {
+        var parent = units;
+        var current, part;
+        for (var i = 0, len = parts.length; i < len; i++) {
+            part = parts[i];
+            current = parent[part];
+            if (current === undefined) {
+                throw new Error("Can't find the specified module '"
+                        + name + "'");
+            }
+            parent = current;
+        }
+        return current;
+    }
+};
+
+module.exports = template;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 var Backbone = __webpack_require__(0);
-var ValidityStatus = __webpack_require__(7);
+var ValidityStatus = __webpack_require__(1);
 
 var email = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -176,15 +619,15 @@ function getChangeHandler(key) {
 
 
 /***/ }),
-/* 4 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _ = __webpack_require__(2),
+var _ = __webpack_require__(5),
     Backbone = __webpack_require__(0);
-var template = __webpack_require__(9);
+var template = __webpack_require__(3);
 
 var Service = function() {};
 
@@ -394,13 +837,13 @@ module.exports = Service;
 
 
 /***/ }),
-/* 5 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Widget = __webpack_require__(8);
+var Widget = __webpack_require__(2);
 
 /**
  * Параметры представления.
@@ -433,7 +876,7 @@ module.exports = View;
 
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -463,457 +906,16 @@ module.exports = function(model, options) {
 
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _ = __webpack_require__(2),
-    Backbone = __webpack_require__(0);
-
-// Статус валидации
-// ----------------
-var ValidityStatus = function() {
-
-    // Упрощённая модель статуса валидации формы для связывания с
-    // представлением при помощи Rivets.
-    this.model = new Backbone.Model({
-        $invalid: false,
-        $valid: true
-    });
-
-    // Статус валидации полей.
-    //
-    //  status: {
-    //      __self__: [
-    //          hasErrA: true,
-    //          hasErrB: false,
-    //          invalid: true,
-    //          valid: false
-    //      ],
-    //      foo: {
-    //          __self__: [
-    //              hasErrС: false,
-    //              invalid: false,
-    //              valid: true
-    //          ],
-    //          bar: {
-    //              __self__: [
-    //                  hasErrD: true,
-    //                  invalid: true,
-    //                  valid: false
-    //              ]
-    //          }
-    //      }
-    //  }
-    this.status = {
-        __self__: {
-            invalid: false,
-            valid: true
-        }
-    };
-};
-
-// Для полей, перечисленных в ошибках `errors`, выставляет флаг
-// невалидности с именем `flag`. Если указан путь `base`, то он будет
-// добавлен к названию полей ошибок.
-ValidityStatus.prototype.loadErrors = function(flag, errors, base) {
-    var path = [],
-        stack = [this.status];
-    if (base != null) {
-        var keys = base.split(".");
-        for (var i = 0, il = keys.length; i < il; i++) {
-            var key = keys[i];
-            if (key === "") {
-                throw new Error("Invalid base '" + base + "'");
-            } else if (key === "__self__") {
-                throw new Error("Mustn't use '__self__' in base '"
-                        + base + "'");
-            }
-            var val = stack[i];
-            val[key] = val[key] || {};
-            stack.push(val[key]);
-            path.push(key);
-        }
-    }
-    loadErrors(this, flag, stack.pop(), errors,
-            path.length ? path.join("_") + "_" : "");
-    for (i = path.length - 1; i >= 0; i--) {
-        updateValidity(this, stack[i],
-                i ? path.slice(0, i).join("_") + "_" : "");
-    }
-};
-
-// Убирает у всех полей флаги невалидности `flags`. Если указан путь
-// `base`, то обработаны будут только те поля, которые расположены по
-// этому пути.
-ValidityStatus.prototype.removeErrors = function(flags, base) {
-    var path = [],
-        stack = [this.status];
-    if (!_.isArray(flags)) {
-        flags = [flags];
-    }
-    if (base != null) {
-        var keys = base.split(".");
-        for (var i = 0, il = keys.length; i < il; i++) {
-            var key = keys[i];
-            if (key === "") {
-                throw new Error("Invalid base '" + base + "'");
-            } else if (key === "__self__") {
-                throw new Error("Mustn't use '__self__' in base '"
-                        + base + "'");
-            }
-            var val = stack[i];
-            val[key] = val[key] || {};
-            stack.push(val[key]);
-            path.push(key);
-        }
-    }
-    removeErrors(this, flags, stack.pop(),
-            path.length ? path.join("_") + "_" : "");
-    for (i = path.length - 1; i >= 0; i--) {
-        updateValidity(this, stack[i],
-                i ? path.slice(0, i).join("_") + "_" : "");
-    }
-};
-
-// Устанавливает значение флага проверки валидности поля и рекурсивно
-// обновляет статус валидации родительских полей.
-ValidityStatus.prototype.set = function(keypath, status) {
-    var keys = keypath.split("."),
-        path = [],
-        stack = [this.status];
-    for (var i = 0, il = keys.length; i < il; i++) {
-        var key = keys[i];
-        if (key === "") {
-            throw new Error("Invalid keypath '" + keypath + "'");
-        } else if (key === "__self__") {
-            throw new Error("Mustn't use '__self__' in keypath '"
-                    + keypath + "'");
-        }
-        var val = stack[i];
-        if (i + 1 === il) {
-            val.__self__ = val.__self__ || {};
-            val.__self__[key] = status;
-            this.model.set(
-                    (i ? path.join("_") + "_$" : "$") + key,
-                    status);
-            break;
-        } else {
-            val[key] = val[key] || {};
-        }
-        stack.push(val[key]);
-        path.push(key);
-    }
-    for (i = stack.length - 1; i >= 0; i--) {
-        updateValidity(this, stack[i],
-                i ? path.slice(0, i).join("_") + "_" : "");
-    }
-};
-
-function loadErrors(vs, flag, val, err, attrpref) {
-    for (var key in err) {
-        if (key === "__self__") {
-            if (err.__self__.length) {
-                val.__self__ = val.__self__ || {};
-                val.__self__[flag] = true;
-                vs.model.set(attrpref + "$" + flag, true);
-            }
-        } else {
-            val[key] = val[key] || {};
-            loadErrors(vs, flag, val[key], err[key],
-                    attrpref + key + "_");
-        }
-    }
-    updateValidity(vs, val, attrpref);
-}
-
-function removeErrors(vs, flags, val, attrpref) {
-    for (var key in val) {
-        if (key === "__self__") {
-            for (var i = flags.length - 1; i >= 0; i--) {
-                var flag = flags[i];
-                delete val.__self__[flag];
-                vs.model.unset(attrpref + "$" + flag);
-            }
-        } else if (_.isObject(val[key])) {
-            removeErrors(vs, flags, val[key], attrpref + key + "_");
-        }
-    }
-    updateValidity(vs, val, attrpref);
-}
-
-function updateValidity(vs, val, attrpref) {
-    var key,
-        valid = true;
-    val.__self__ = val.__self__ || {};
-    for (key in val.__self__) {
-        if (key !== "invalid" && key !== "valid"
-                && val.__self__[key]) {
-            valid = false;
-        }
-    }
-    if (valid) {
-        for (key in val) {
-            if (key !== "__self__"
-                    && val[key].__self__.invalid) {
-                valid = false;
-            }
-        }
-    }
-    val.__self__.invalid = !valid;
-    val.__self__.valid = valid;
-    vs.model.set(attrpref + "$invalid", !valid);
-    vs.model.set(attrpref + "$valid", valid);
-}
-
-module.exports = ValidityStatus;
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var $ = __webpack_require__(1);
-
-/**
- * Параметры виджета.
- *
- * @namespace  Widget~Settings
- * @property  {String} name
- *            Имя виджета (id тега виджета).
- * @property  {String} constructor
- *            Функция-конструктор виджета.
- */
-
-/**
- * Создаёт виджет.
- *
- * @constructor
- * @param  {Widget~Settings} settings
- *         Параметры виджета.
- */
-var Widget = function(settings) {
-    settings = (settings == null ? {} : settings);
-    if (settings.name == null || settings.name === "") {
-        throw new Error("Undefined 'settings.name' param");
-    }
-    this.name = settings.name;
-};
-
-/**
- * Возвращает элемент, который содержит тело виджета.
- *
- * @returns  {jQuery}
- *           Объект jQuery.
- */
-Widget.prototype.getWidgetObj = function() {
-    return $("#" + this.name);
-};
-
-module.exports = Widget;
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var $ = __webpack_require__(1);
-
-/**
- * Шаблонная страница.
- *
- * @namespace
- */
-var template = {
-    __config: null
-};
-
-/**
- * Создаёт виджет.
- *
- * @static
- * @param  {Widget~Settings} settings
- *         Параметры виджета.
- * @returns  Виджет.
- */
-template.createWidget = function(settings) {
-    return new (getModule(settings.constructor))(settings);
-};
-
-/**
- * Возвращает адрес корня сайта. Если адрес не пустой, то проверяется,
- * чтобы он оканчивался на `/`.
- *
- * @static
- * @returns  {String}
- *           Корень адреса сайта.
- */
-template.getBaseUrl = function() {
-    var base = $("base").attr("href") || "";
-    return (base && base.charAt(base.length - 1) !== "/"
-            ? base + "/" : base);
-};
-
-/**
- * Возвращает конфигурацию страницы.
- *
- * @returns  {Object}
- *           Объект конфигурации страницы.
- */
-template.getConfig = function() {
-    if (this.__config == null) {
-        this.__config = JSON.parse($(".template-config").html());
-    }
-    return this.__config;
-};
-
-/**
- * Возвращает язык страницы.
- *
- * @returns  {String}
- *           Код языка.
- */
-template.getLang = function() {
-    var lang = this.getConfig().lang;
-    return (lang == null ? "en" : lang);
-};
-
-/**
- * Отправляет на другую страницу.
- *
- * @static
- * @param  {Object} settings
- *         Параметры запроса:
- *           - {String} method
- *             Метод отправки формы - get или post.
- *           - {Object} params
- *             Объект, который содержит параметры запроса.
- *           - {String} url
- *             URL запроса. Параметр по умолчанию.
- */
-template.directTo = function(settings) {
-    var method, params, url;
-    settings = (settings == null ? {} : settings);
-    if (settings instanceof Object) {
-        method = (settings.method == null ? "get" : settings.method);
-        params = (settings.params == null ? {} : settings.params);
-        url = (settings.url == null ? "" : settings.url);
-    } else {
-        method = "get";
-        params = {};
-        url = (settings == null ? "" : settings);
-    }
-    var formObj = $('<form class="hidden" method="' + method
-            + '" action="' + url + '"></form>')
-        .appendTo($("body"));
-    if (params instanceof Array) {
-        for (var p = 0, plen = params.length; p < plen; p++) {
-            formObj.append('<input name="' + params[p].name
-                    + '" value="' + params[p].value + '">');
-        }
-    } else {
-        for (var pname in params) {
-            if (params[pname] instanceof Array) {
-                for (var i = 0, len = params[pname].length; i < len; i++) {
-                    formObj.append('<input name="' + pname
-                            + '" value="' + params[pname][i] + '">');
-                }
-            } else {
-                formObj.append('<input name="' + pname
-                        + '" value="' + params[pname] + '">');
-            }
-        }
-    }
-    formObj.submit();
-};
-
-/**
- * Возвращает полный URL, добавляя в начало адрес корня сайта.
- *
- * @static
- * @param  {Object} settings
- *           - {String} adr
- *             Адрес запроса. Параметр по умолчанию. Если начинается
- *             со `/`, то URL будет рассчитан как `base` + `adr`.
- *           - {String} base
- *             Корень адреса сайта. Если не указан, то считывается из
- *             тэга `base`.
- *           - {Object} params
- *             Объект, который содержит параметры запроса.
- */
-template.url = function(settings) {
-    var adr, base, params, url;
-    settings = (settings == null ? {} : settings);
-    if (settings instanceof Object) {
-        adr = (settings.adr == null ? "" : settings.adr);
-        base = (settings.base == null
-                ? template.getBaseUrl() : settings.base);
-        params = (settings.params == null
-                ? "" : $.param(settings.params));
-    } else {
-        adr = settings;
-        base = template.getBaseUrl();
-        params = "";
-    }
-    // Если `adr` начинается на `/`, то присоединить `base`, иначе
-    // использывать только `adr`
-    if (base != null && base !== "" && base !== "/"
-            && adr.charAt(0) === "/") {
-        // Избежать `//` при присоединении
-        if (base.charAt(base.length - 1) === "/") {
-            adr = adr.substring(1);
-        }
-        url = base + adr;
-    } else {
-        url = adr;
-    }
-    // Если URL уже содержит `?`, то параметры подставлять начиная с `&`
-    if (params) {
-        params = (url.indexOf("?") >= 0 ? "&" : "?") + params;
-    }
-    return url + params;
-};
-
-var getModule = function(name) {
-    var parts = name.split(".");
-    if (parts.length === 0) {
-        throw new Error("Invalid module name '" + name + "'");
-    } else {
-        var parent = units;
-        var current, part;
-        for (var i = 0, len = parts.length; i < len; i++) {
-            part = parts[i];
-            current = parent[part];
-            if (current === undefined) {
-                throw new Error("Can't find the specified module '"
-                        + name + "'");
-            }
-            parent = current;
-        }
-        return current;
-    }
-};
-
-module.exports = template;
-
-
-/***/ }),
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(5);
-__webpack_require__(3);
-__webpack_require__(4);
-module.exports = __webpack_require__(6);
-
+exports.Form = __webpack_require__(6);
+exports.Service = __webpack_require__(7);
+exports.ValidityStatus = __webpack_require__(1);
+exports.View = __webpack_require__(8);
+exports.Widget = __webpack_require__(2);
+exports.restyProvider = __webpack_require__(9);
+exports.template = __webpack_require__(3);
 
 /***/ })
 /******/ ]);
