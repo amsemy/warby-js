@@ -6,7 +6,6 @@ module.exports = {
     entry: {
         helpers: ['sinon'],
         specs: glob.sync('./spec/**/*.js'),
-        src: glob.sync('./src/**/*.js'),
         vendor: ['jquery', 'underscore', 'backbone']
     },
     output: {
@@ -20,7 +19,7 @@ module.exports = {
     },
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
-            names: ['helpers', 'src', 'vendor'],
+            names: ['helpers', 'vendor'],
             filename: '[name].js'
         }),
         new webpack.SourceMapDevToolPlugin({

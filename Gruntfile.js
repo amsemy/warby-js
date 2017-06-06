@@ -23,8 +23,7 @@ module.exports = function(grunt) {
                     helpers: 'build/helpers.js',
                     specs: 'build/specs.js',
                     vendor: 'build/vendor.js'
-                },
-                src: 'build/src.js'
+                }
             }
         }
 
