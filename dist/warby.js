@@ -353,7 +353,8 @@ var $ = __webpack_require__(4);
  * @namespace
  */
 var template = {
-    __config: null
+    __config: null,
+    __widgets: {}
 };
 
 /**
@@ -365,7 +366,12 @@ var template = {
  * @returns  Виджет.
  */
 template.createWidget = function(settings) {
-    return new (getModule(settings.constructor))(settings);
+    var name = settings.constructor;
+    if (name in this.__widgets) {
+        return new (template.__widgets[name])(settings);
+    } else {
+        throw new Error("Can't find widget '" + name + "'");
+    }
 };
 
 /**
@@ -456,6 +462,21 @@ template.directTo = function(settings) {
 };
 
 /**
+ * Регистрирует виджет в шаблоне.
+ *
+ * @param  {String} name
+ *         Имя виджета.
+ * @param  {Widget} constr
+ *         Конструктор виджета.
+ */
+template.registerWidget = function(name, constr) {
+    if (name in this.__widgets) {
+        throw new Error("Widget '" + name + "' has  already been registered");
+    }
+    this.__widgets[name] = constr;
+};
+
+/**
  * Возвращает полный URL, добавляя в начало адрес корня сайта.
  *
  * @static
@@ -500,26 +521,6 @@ template.url = function(settings) {
         params = (url.indexOf("?") >= 0 ? "&" : "?") + params;
     }
     return url + params;
-};
-
-var getModule = function(name) {
-    var parts = name.split(".");
-    if (parts.length === 0) {
-        throw new Error("Invalid module name '" + name + "'");
-    } else {
-        var parent = units;
-        var current, part;
-        for (var i = 0, len = parts.length; i < len; i++) {
-            part = parts[i];
-            current = parent[part];
-            if (current === undefined) {
-                throw new Error("Can't find the specified module '"
-                        + name + "'");
-            }
-            parent = current;
-        }
-        return current;
-    }
 };
 
 module.exports = template;
