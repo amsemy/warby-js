@@ -2,10 +2,9 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-    context: path.resolve(__dirname, 'src'),
     entry: {
-        'warby': './main.js',
-        'warby.min': './main.js'
+        'warby': './src/main.js',
+        'warby.min': './src/main.js'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
